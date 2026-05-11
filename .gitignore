@@ -1,0 +1,72 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+env/
+.venv/
+pip-wheel-metadata/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_meta
+
+# Data files — never commit raw data with PII
+data/raw/*.csv
+data/raw/*.json
+data/raw/*.parquet
+data/staging/
+data/mart/
+!data/raw/.gitkeep
+!data/staging/.gitkeep
+!data/mart/.gitkeep
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+dbt/.user.yml
+
+# Secrets and environment
+.env
+.env.*
+secrets/
+*.key
+*.pem
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*.DS_Store
+Thumbs.db
+
+# Docker volumes
+postgres_data/
+
+# Great Expectations
+gx/uncommitted/
+great_expectations/uncommitted/
+
+# Airflow
+logs/
+airflow.db
+airflow.cfg
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# OS
+*.DS_Store
+desktop.ini

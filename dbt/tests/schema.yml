@@ -1,0 +1,135 @@
+version: 2
+
+# ============================================================
+# dbt Tests — Notivo Analytics Platform
+# These tests run on every dbt build. They are the guardrails
+# that prevent silent data quality failures from reaching
+# stakeholders.
+# ============================================================
+
+models:
+
+  - name: stg_users
+    description: "Cleaned and standardized users table. One row per user."
+    columns:
+      - name: user_id
+        description: "Primary key"
+        tests:
+          - unique
+          - not_null
+      - name: workspace_id
+        description: "Foreign key to workspaces"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_workspaces')
+              field: workspace_id
+      - name: email
+        tests:
+          - not_null
+      - name: user_role
+        tests:
+          - accepted_values:
+              values: ['owner', 'admin', 'member', 'viewer']
+      - name: signup_source
+        tests:
+          - accepted_values:
+              values: ['direct', 'invite', 'sso', 'oauth_google', 'oauth_github']
+              severity: warn
+
+  - name: stg_subscriptions
+    description: "Cleaned subscriptions. One row per subscription."
+    columns:
+      - name: subscription_id
+        tests:
+          - unique
+          - not_null
+      - name: workspace_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_workspaces')
+              field: workspace_id
+      - name: mrr
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 100000
+      - name: status
+        tests:
+          - accepted_values:
+              values: ['active', 'trialing', 'past_due', 'canceled', 'paused']
+      - name: plan_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_plans')
+              field: plan_id
+
+  - name: fct_mrr
+    description: "Monthly MRR fact table. Source of truth for all revenue metrics."
+    tests:
+      # One row per workspace per month
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - workspace_id
+            - mrr_month
+    columns:
+      - name: mrr
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+      - name: mrr_type
+        tests:
+          - accepted_values:
+              values: ['new', 'expansion', 'contraction', 'retained', 'other']
+
+  - name: fct_sessions
+    description: "Session fact table."
+    columns:
+      - name: session_id
+        tests:
+          - unique
+          - not_null
+      - name: user_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_users')
+              field: user_id
+      - name: started_at
+        tests:
+          - not_null
+          # Sessions cannot be in the future
+          - dbt_utils.expression_is_true:
+              expression: "started_at <= current_timestamp"
+
+sources:
+
+  - name: notivo_raw
+    description: "Raw source tables from the product database"
+    freshness:
+      warn_after:
+        count: 25
+        period: hour
+      error_after:
+        count: 48
+        period: hour
+    loaded_at_field: created_at
+    tables:
+      - name: users
+        loaded_at_field: created_at
+      - name: workspaces
+        loaded_at_field: created_at
+      - name: subscriptions
+        loaded_at_field: started_at
+      - name: sessions
+        loaded_at_field: started_at
+      - name: events
+        loaded_at_field: occurred_at
+      - name: invoices
+        loaded_at_field: issued_at
+      - name: cancellations
+        loaded_at_field: canceled_at

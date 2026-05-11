@@ -1,0 +1,97 @@
+version: "3.9"
+
+# ============================================================
+# Notivo Analytics Platform — Local Development Stack
+# ============================================================
+# Services:
+#   postgres    → production-equivalent database (port 5432)
+#   jupyter     → notebook server (port 8888)
+#   streamlit   → analytics dashboard (port 8501)
+#   pgadmin     → database UI (port 5050)
+# ============================================================
+
+services:
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: notivo_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: notivo_user
+      POSTGRES_PASSWORD: notivo_pass
+      POSTGRES_DB: notivo_analytics
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notivo_user -d notivo_analytics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  jupyter:
+    image: jupyter/scipy-notebook:python-3.11
+    container_name: notivo_jupyter
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+      JUPYTER_TOKEN: "notivo_analytics"
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: notivo_analytics
+      DB_USER: notivo_user
+      DB_PASS: notivo_pass
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/home/jovyan/work
+    working_dir: /home/jovyan/work
+    command: >
+      bash -c "pip install -r requirements.txt --quiet &&
+               start-notebook.sh --NotebookApp.token='notivo_analytics'"
+
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    container_name: notivo_streamlit
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: notivo_analytics
+      DB_USER: notivo_user
+      DB_PASS: notivo_pass
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: notivo_pgadmin
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@notivo.io
+      PGADMIN_DEFAULT_PASSWORD: notivo_admin
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+
+networks:
+  default:
+    name: notivo_network
