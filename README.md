@@ -203,7 +203,7 @@ saas_analytics_platform/
 - **Churn driver analysis**: feature usage, support tickets, plan changes as signals
 - **Predictive churn scoring**: logistic regression + feature importance
 - **Win-back analysis**: reactivation rates and economics
-![Churn Analysis](screenshots/Churn Reason Analysis.png)
+![Churn Analysis](screenshots/Churn_Reason_Analysis.png)
 ---
 
 ## Setup Instructions
