@@ -185,7 +185,7 @@ saas_analytics_platform/
 - **Unit economics**: ARPU, LTV, CAC, payback period, LTV:CAC by channel
 - **ARR decomposition**: logo growth vs. seat expansion vs. price changes
 - **Billing health**: failed payment rate, dunning recovery, invoice aging
-
+![MRR Waterfall](screenshots/MRR_Waterfall.png)
 ### Retention & Cohort Analytics
 - **Retention matrices**: by signup cohort, plan type, acquisition channel
 - **Survival analysis**: time-to-churn curves, median survival by segment
@@ -203,7 +203,7 @@ saas_analytics_platform/
 - **Churn driver analysis**: feature usage, support tickets, plan changes as signals
 - **Predictive churn scoring**: logistic regression + feature importance
 - **Win-back analysis**: reactivation rates and economics
-
+![Churn Analysis](screenshots/Churn_Reason_Analysis.png)
 ---
 
 ## Setup Instructions
