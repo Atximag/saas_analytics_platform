@@ -306,7 +306,7 @@ All KPIs are defined once in `docs/metric_dictionary.md` and implemented in `src
 
 ## Author
 
-Built as a portfolio demonstration of senior-level analytics engineering capabilities. Every metric, model, and insight reflects real decision-making frameworks used at modern SaaS companies.
+**Atximag**
 
 ---
 
